@@ -1,78 +1,136 @@
-// src/BookingForm.jsx
 import React, { useState } from "react";
+import axios from "axios";
+
+const API_BASE = "http://localhost:5000"; // your backend
 
 export default function BookingForm() {
-  const [form, setForm] = useState({
-    patientName: "",
-    doctorId: "",
-    scheduledTime: ""
-  });
+  const [patientName, setPatientName] = useState("");
+  const [doctorId, setDoctorId] = useState("");
+  const [scheduledTime, setScheduledTime] = useState("");
+  const [message, setMessage] = useState(null);
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  // Doctors list (could later be fetched dynamically from backend)
+  const doctors = [
+    { id: "dr_1", name: "Dr. Sarah Johnson (Family Medicine)" },
+    { id: "dr_2", name: "Dr. Michael Chen (Pediatrics)" },
+  ];
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await axios.post(`${API_BASE}/appointments`, {
+        patientName,
+        doctorId,
+        scheduledTime,
+      });
+
+      setMessage(res.data.message);
+
+      // ✅ Save appointmentId in localStorage
+      if (res.data.appointment?.id) {
+        localStorage.setItem("appointmentId", res.data.appointment.id);
+        console.log("Saved appointmentId:", res.data.appointment.id);
+      }
+    } catch (err) {
+      setMessage("Error booking appointment.");
+      console.error(err);
+    }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    alert(`Booking submitted:\n${JSON.stringify(form, null, 2)}`);
+  const inputStyle = {
+    width: "100%",
+    marginBottom: "12px",
+    padding: "12px 0",
+    borderRadius: "6px",
+    border: "1px solid #ccc",
+    fontSize: "15px",
+    outline: "none",
   };
 
   return (
-    <form onSubmit={handleSubmit} style={styles.form}>
-      <h2>Book an Appointment</h2>
+    <div
+      style={{
+        padding: "20px",
+        borderRadius: "12px",
+        backgroundColor: "#ffffff",
+        color: "#0C7B77",
+        boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+        maxWidth: "400px",
+        margin: "10px auto",
+      }}
+    >
+      <h2 style={{ marginBottom: "15px", color: "#0C7B77" }}>
+        Book Appointment
+      </h2>
+      <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          placeholder="Your Name"
+          value={patientName}
+          onChange={(e) => setPatientName(e.target.value)}
+          required
+          style={inputStyle}
+        />
 
-      <input
-        type="text"
-        name="patientName"
-        placeholder="Your Name"
-        value={form.patientName}
-        onChange={handleChange}
-        style={styles.input}
-        required
-      />
+        {/* ✅ Dropdown for doctors */}
+        <select
+          value={doctorId}
+          onChange={(e) => setDoctorId(e.target.value)}
+          required
+          style={inputStyle}
+        >
+          <option value="">Select a Doctor</option>
+          {doctors.map((doc) => (
+            <option key={doc.id} value={doc.id}>
+              {doc.name}
+            </option>
+          ))}
+        </select>
 
-      <select
-        name="doctorId"
-        value={form.doctorId}
-        onChange={handleChange}
-        style={styles.input}
-        required
-      >
-        <option value="">Select Doctor</option>
-        <option value="dr_1">Dr. Sarah Johnson (Family Medicine)</option>
-        <option value="dr_2">Dr. Michael Chen (Pediatrics)</option>
-      </select>
+        <input
+          type="datetime-local"
+          value={scheduledTime}
+          onChange={(e) => setScheduledTime(e.target.value)}
+          required
+          style={inputStyle}
+        />
 
-      <input
-        type="datetime-local"
-        name="scheduledTime"
-        value={form.scheduledTime}
-        onChange={handleChange}
-        style={styles.input}
-        required
-      />
+        <button
+          type="submit"
+          style={{
+            width: "100%",
+            padding: "12px",
+            backgroundColor: "#0C7B77",
+            color: "white",
+            border: "none",
+            borderRadius: "6px",
+            fontWeight: "bold",
+            cursor: "pointer",
+            fontSize: "16px",
+          }}
+        >
+          Book Now
+        </button>
+      </form>
+      {message && (
+        <p style={{ marginTop: "12px", fontWeight: "bold", color: "#444" }}>
+          {message}
+        </p>
+      )}
 
-      <button type="submit" style={styles.button}>Book</button>
-    </form>
+      {/* ✅ Placeholder style override */}
+      <style>
+        {`
+          input::placeholder {
+            color: #888;
+            font-size: 14px;
+          }
+        `}
+      </style>
+    </div>
   );
 }
 
-const styles = {
-  form: { display: "flex", flexDirection: "column", gap: "15px" },
-  input: {
-    padding: "10px",
-    borderRadius: "6px",
-    border: "1px solid #ccc"
-  },
-  button: {
-    padding: "10px",
-    border: "none",
-    borderRadius: "6px",
-    backgroundColor: "#2a9d8f",
-    color: "white",
-    cursor: "pointer"
-  }
-};
 
 
 
@@ -82,54 +140,99 @@ const styles = {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// import React, { useState } from 'react';
+// import React, { useState } from "react";
 
 // export default function BookingForm() {
-//   const [name, setName] = useState('');
-//   const [doctor, setDoctor] = useState('dr_1');
+//   const [form, setForm] = useState({
+//     patientName: "",
+//     doctorId: "",
+//     scheduledTime: ""
+//   });
+
+//   const handleChange = (e) => {
+//     setForm({ ...form, [e.target.name]: e.target.value });
+//   };
 
 //   const handleSubmit = (e) => {
 //     e.preventDefault();
-//     // TODO: call backend
+//     alert(`Booking submitted:\n${JSON.stringify(form, null, 2)}`);
 //   };
 
 //   return (
 //     <form onSubmit={handleSubmit} style={styles.form}>
-//       <h2>Book Appointment</h2>
+//       <h2>Book an Appointment</h2>
+
 //       <input
-//         style={styles.input}
 //         type="text"
-//         value={name}
+//         name="patientName"
 //         placeholder="Your Name"
-//         onChange={(e) => setName(e.target.value)}
+//         value={form.patientName}
+//         onChange={handleChange}
+//         style={styles.input}
 //         required
 //       />
-//       <select value={doctor} onChange={(e) => setDoctor(e.target.value)} style={styles.input}>
-//         <option value="dr_1">Dr. Sarah Johnson</option>
-//         <option value="dr_2">Dr. Michael Chen</option>
+
+//       <select
+//         name="doctorId"
+//         value={form.doctorId}
+//         onChange={handleChange}
+//         style={styles.input}
+//         required
+//       >
+//         <option value="">Select Doctor</option>
+//         <option value="dr_1">Dr. Sarah Johnson (Family Medicine)</option>
+//         <option value="dr_2">Dr. Michael Chen (Pediatrics)</option>
 //       </select>
-//       <button type="submit" style={styles.button}>Book Now</button>
+
+//       <input
+//         type="datetime-local"
+//         name="scheduledTime"
+//         value={form.scheduledTime}
+//         onChange={handleChange}
+//         style={styles.input}
+//         required
+//       />
+
+//       <button type="submit" style={styles.button}>Book</button>
 //     </form>
 //   );
 // }
 
 // const styles = {
-//   form: { display: 'flex', flexDirection: 'column', width: '300px', gap: '1rem' },
-//   input: { padding: '0.5rem', fontSize: '1rem' },
-//   button: { padding: '0.75rem', backgroundColor: '#0056A0', color: '#fff', border: 'none', cursor: 'pointer' }
+//   form: { display: "flex", flexDirection: "column", gap: "15px" },
+//   input: {
+//     padding: "10px",
+//     borderRadius: "6px",
+//     border: "1px solid #ccc"
+//   },
+//   button: {
+//     padding: "10px",
+//     border: "none",
+//     borderRadius: "6px",
+//     backgroundColor: "#2a9d8f",
+//     color: "white",
+//     cursor: "pointer"
+//   }
 // };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
