@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 
-const API_BASE = "http://localhost:5000"; // your backend
+const API_BASE = "http://localhost:6002";   // my backend
 
 export default function BookingForm() {
   const [patientName, setPatientName] = useState("");
@@ -18,7 +18,7 @@ export default function BookingForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post(`${API_BASE}/appointments`, {
+      const res = await axios.post(`${API_BASE}/api/appointments`,  {
         patientName,
         doctorId,
         scheduledTime,
