@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import io from "socket.io-client";
 import axios from "axios";
 
-const API_BASE = "http://localhost:6002";   // your backend
+const API_BASE = "http://localhost:6002";   // my backend
 const socket = io(API_BASE);
 
 export default function StatusView() {
@@ -10,7 +10,7 @@ export default function StatusView() {
   const [queuePosition, setQueuePosition] = useState(null);
   const [estimatedWaitTime, setEstimatedWaitTime] = useState(null);
 
-  // 🔹 Manual refresh (fallback)
+  // 🔹 Manual refresh (fallback) — unchanged
   const refreshStatus = async () => {
     try {
       const appointmentId = localStorage.getItem("appointmentId");
@@ -26,22 +26,25 @@ export default function StatusView() {
     }
   };
 
-  // 🔹 Auto update from socket + initial fetch
+  // 🔹 Auto updates (socket) + one-time initial fetch — minimal changes
   useEffect(() => {
     const appointmentId = localStorage.getItem("appointmentId");
-
     if (appointmentId) {
-      // call backend once immediately
-      refreshStatus();
-
-      // join socket room for live updates
-      socket.emit("joinAppointment", appointmentId);
+      refreshStatus();                        // initial fetch to reflect DB state
+      socket.emit("joinAppointment", appointmentId); // join room (keep your event name)
     }
 
+    // ✅ Only update fields that are present. Do NOT force status to "waiting".
     socket.on("queueUpdate", (data) => {
-      setStatus(data.status || "waiting");
-      setQueuePosition(data.position);
-      setEstimatedWaitTime(data.estimatedWaitTime);
+      const pos = data.position ?? data.queuePosition;
+      if (pos !== undefined) setQueuePosition(pos);
+      if (data.estimatedWaitTime !== undefined) setEstimatedWaitTime(data.estimatedWaitTime);
+      if (data.status !== undefined) setStatus(data.status); // only if backend sends it
+    });
+
+    // ✅ Optional: if your backend emits explicit status-only updates
+    socket.on("statusUpdate", (data) => {
+      if (data?.status !== undefined) setStatus(data.status);
     });
 
     socket.on("turnAlert", (data) => {
@@ -51,9 +54,16 @@ export default function StatusView() {
 
     return () => {
       socket.off("queueUpdate");
+      socket.off("statusUpdate");
       socket.off("turnAlert");
     };
-  }, []); // run once on mount
+  }, []);
+
+  // 🔹 Friendly wait text: if you're first and not done, show "Available now"
+  const friendlyWait =
+    queuePosition === 1 && status !== "done"
+      ? "Available now"
+      : (estimatedWaitTime ?? "...");
 
   return (
     <div
@@ -76,7 +86,7 @@ export default function StatusView() {
 
       <p><strong>Status:</strong> {status}</p>
       <p><strong>Queue Position:</strong> {queuePosition ?? "..."}</p>
-      <p><strong>Estimated Wait:</strong> {estimatedWaitTime ?? "..."} </p>
+      <p><strong>Estimated Wait:</strong> {friendlyWait}</p>
 
       <button
         onClick={refreshStatus}
