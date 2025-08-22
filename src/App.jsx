@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import BookingForm from "./BookingForm.jsx";
 import StatusView from "./StatusView.jsx";
-import DoctorDashboard from "./DoctorDashboard.jsx";
+// import DoctorDashboard from "./DoctorDashboard.jsx";
 
 export default function App() {
   const [view, setView] = useState("booking");
@@ -18,9 +18,9 @@ export default function App() {
         <button onClick={() => setView("status")} style={styles.button}>
           Check Status
         </button>
-        <button onClick={() => setView("doctor")} style={styles.button}>
-          Doctor Dashboard
-        </button>
+        {/* <button onClick={() => setView("doctor")} style={styles.button}> */}
+          {/* Doctor Dashboard */}
+        {/* </button> */}
       </div>
 
       <div style={styles.container}>
