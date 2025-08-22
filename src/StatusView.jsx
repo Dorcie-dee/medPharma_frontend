@@ -9,8 +9,10 @@ export default function StatusView() {
   const [status, setStatus] = useState("Loading...");
   const [queuePosition, setQueuePosition] = useState(null);
   const [estimatedWaitTime, setEstimatedWaitTime] = useState(null);
+  const [doctorStatus, setDoctorStatus] = useState("on-time");     // track doctor status
 
-  // 🔹 Manual refresh (fallback) — unchanged
+
+  // manual refresh (fallback)
   const refreshStatus = async () => {
     try {
       const appointmentId = localStorage.getItem("appointmentId");
@@ -20,29 +22,31 @@ export default function StatusView() {
       setStatus(res.data.status || "waiting");
       setQueuePosition(res.data.queuePosition);
       setEstimatedWaitTime(res.data.estimatedWaitTime);
+      setDoctorStatus(res.data.doctorStatus || "on-time");    
+
     } catch (err) {
       console.error("Error refreshing status:", err);
       alert("Failed to refresh. Please try again.");
     }
   };
 
-  // 🔹 Auto updates (socket) + one-time initial fetch — minimal changes
+  // auto updates (socket) + one-time initial fetch
   useEffect(() => {
     const appointmentId = localStorage.getItem("appointmentId");
     if (appointmentId) {
-      refreshStatus();                        // initial fetch to reflect DB state
-      socket.emit("joinAppointment", appointmentId); // join room (keep your event name)
+      refreshStatus();                                   // initial fetch to reflect DB state
+      socket.emit("joinAppointment", appointmentId);     // join patient room
     }
 
-    // ✅ Only update fields that are present. Do NOT force status to "waiting".
+    // Only update fields that are present. Do NOT force status to "waiting".
     socket.on("queueUpdate", (data) => {
       const pos = data.position ?? data.queuePosition;
       if (pos !== undefined) setQueuePosition(pos);
       if (data.estimatedWaitTime !== undefined) setEstimatedWaitTime(data.estimatedWaitTime);
-      if (data.status !== undefined) setStatus(data.status); // only if backend sends it
+      if (data.status !== undefined) setStatus(data.status);    // only if backend sends it
     });
 
-    // ✅ Optional: if your backend emits explicit status-only updates
+    // backend emits explicit status-only updates
     socket.on("statusUpdate", (data) => {
       if (data?.status !== undefined) setStatus(data.status);
     });
@@ -52,14 +56,25 @@ export default function StatusView() {
       setStatus("in-progress");
     });
 
+
+    // Listening for doctor status changes
+    socket.on("doctorStatusChange", (data) => {
+      if (data.doctorId && data.doctorId === localStorage.getItem("appointmentDoctorId")) {
+        setDoctorStatus(data.status);
+      }
+    });
+
     return () => {
       socket.off("queueUpdate");
       socket.off("statusUpdate");
       socket.off("turnAlert");
+      socket.off("doctorStatusChange"); // cleanup
+
     };
   }, []);
 
-  // 🔹 Friendly wait text: if you're first and not done, show "Available now"
+
+  // friendly wait text: if you're first and not done, show "Available now"
   const friendlyWait =
     queuePosition === 1 && status !== "done"
       ? "Available now"
@@ -87,6 +102,8 @@ export default function StatusView() {
       <p><strong>Status:</strong> {status}</p>
       <p><strong>Queue Position:</strong> {queuePosition ?? "..."}</p>
       <p><strong>Estimated Wait:</strong> {friendlyWait}</p>
+      <p><strong>Doctor Status:</strong> {doctorStatus}</p> {/* NEW */}
+
 
       <button
         onClick={refreshStatus}
