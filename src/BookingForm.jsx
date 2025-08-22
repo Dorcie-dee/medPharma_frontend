@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 
-const API_BASE = "https://medpharma-care-backend.onrender.com/";   // my backend
+const API_BASE = "http://localhost:6002";   // my backend
 
 export default function BookingForm() {
   const [patientName, setPatientName] = useState("");
@@ -26,7 +26,7 @@ export default function BookingForm() {
 
       setMessage(res.data.message);
 
-      // ✅ Save appointmentId in localStorage
+      // save appointmentId in localStorage
       if (res.data.appointment?.id) {
         localStorage.setItem("appointmentId", res.data.appointment.id);
         console.log("Saved appointmentId:", res.data.appointment.id);

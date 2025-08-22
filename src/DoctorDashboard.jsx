@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import io from "socket.io-client";
 
-const API_BASE = "https://medpharma-care-backend.onrender.com/";
+const API_BASE = "http://localhost:6002";
 const socket = io(API_BASE);
 
 export default function DoctorDashboard({ doctorId }) {
