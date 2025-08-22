@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import io from "socket.io-client";
 
-const API_BASE = "https://medpharma-care-backend.onrender.com/";
+const API_BASE = "http://localhost:6002";
 const socket = io(API_BASE);
 
 export default function DoctorDashboard({ doctorId }) {
@@ -14,7 +14,7 @@ export default function DoctorDashboard({ doctorId }) {
   const fetchAppointments = async () => {
     try {
       // const res = await axios.get(`${API_BASE}/api/doctors/${doctorId}/appointments`);
-      const res = await axios.get(`${API_BASE}appointments/doctor/${doctorId}`);
+      const res = await axios.get(`${API_BASE}/api/appointments/doctor/${doctorId}`);
       setAppointments(res.data);
       // setDoctorStatus(res.data.doctorStatus || "on-time");
       setLoading(false);
@@ -60,7 +60,7 @@ export default function DoctorDashboard({ doctorId }) {
   // Update doctor personal status
   const handleDoctorStatusChange = async (status) => {
     try {
-      await axios.patch(`${API_BASE}doctors/${doctorId}/status`, { status });
+      await axios.patch(`${API_BASE}/api/doctors/${doctorId}/status`, { status });
       setDoctorStatus(status);
 
       // Broadcast to patients
@@ -73,7 +73,7 @@ export default function DoctorDashboard({ doctorId }) {
   // Update client status
   const handleAppointmentStatusChange = async (appointmentId, status) => {
     try {
-      await axios.patch(`${API_BASE}appointments/${appointmentId}/status`, { status });
+      await axios.patch(`${API_BASE}/api/appointments/${appointmentId}/status`, { status });
       setAppointments((prev) =>
         prev.map((appt) =>
           appt._id === appointmentId ? { ...appt, status } : appt
