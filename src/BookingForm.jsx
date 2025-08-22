@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 
-const API_BASE = "http://localhost:6002";   // my backend
+const API_BASE = "https://medpharma-care-backend.onrender.com/";   // my backend
 
 export default function BookingForm() {
   const [patientName, setPatientName] = useState("");

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import io from "socket.io-client";
 import axios from "axios";
 
-const API_BASE = "http://localhost:6002";   // my backend
+const API_BASE = "https://medpharma-care-backend.onrender.com/";   // my backend
 const socket = io(API_BASE);
 
 export default function StatusView() {
